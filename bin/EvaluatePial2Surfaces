@@ -1,0 +1,38 @@
+#!/bin/bash
+
+if [ -z "$1" ]
+then
+	echo "Usage: $0 <subject id>"
+	exit 1
+fi
+
+#export PYTHONPATH=$MCRIBS_HOME/lib/python
+#export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MCRIBS_HOME/VTK/VTK-install/lib
+P=`pwd`
+
+SUBJID=$1
+
+#T=`mktemp`
+#cd $P/SurfReconDeformable/$SUBJID
+
+#rm -f $T
+LOG=$1.eval.log
+
+rm -f $LOG
+
+$MCRIBS_HOME/MIRTK/MIRTK-install/lib/tools/evaluate-surface-mesh SurfReconDeformable/$SUBJID/meshes/white.vtp SurfReconDeformable/$SUBJID/meshes/white_eval.vtp -v -v -threads `nproc` -collisions 0 2>&1 | tee $LOG
+$MCRIBS_HOME/MIRTK/MIRTK-install/lib/tools/evaluate-surface-mesh SurfReconDeformable/$SUBJID/temp/pial-4.vtp SurfReconDeformable/$SUBJID/meshes/pial-4_eval.vtp -v -v -threads `nproc` -collisions 0 2>&1 | tee $LOG
+
+$MCRIBS_HOME/MIRTK/MIRTK-install/lib/tools/copy-pointset-attributes SurfReconDeformable/$SUBJID/meshes/white_eval.vtp SurfReconDeformable/$SUBJID/meshes/white_eval.vtp -celldata-as-pointdata CollisionType CollisionTypePoint -unanimous 2>&1 | tee $LOG
+
+for i in SurfReconDeformable/$SUBJID/temp/pial-2-output_[0-9][0-9][0-9].vtp
+do
+	SURFFILENAME=`basename ${i}`
+	SURFPREFIX=${SURFFILENAME%.vtp}
+	echo $i
+	$MCRIBS_HOME/MIRTK/MIRTK-install/lib/tools/convert-pointset $i SurfReconDeformable/$SUBJID/meshes/white.vtp SurfReconDeformable/$SUBJID/temp/${SURFPREFIX}_for_eval.vtp -merge 0 2>&1 | tee $LOG
+	$MCRIBS_HOME/MIRTK/MIRTK-install/lib/tools/evaluate-surface-mesh SurfReconDeformable/$SUBJID/temp/${SURFPREFIX}_for_eval.vtp SurfReconDeformable/$SUBJID/temp/${SURFPREFIX}_eval.vtp -v -v -threads `nproc` -collisions 0 2>&1 | tee $LOG
+	rm -f SurfReconDeformable/$SUBJID/temp/${SURFPREFIX}_for_eval.vtp
+	#echo "$MCRIBS_HOME/VTK/VTK-install/bin/vtkpython $MCRIBS_HOME/bin/VTPExtractAll --surf-volgeom=$P/RawT2RadiologicalIsotropic/$SUBJID.nii.gz $i" >> $T
+done
+ConvertAllDeformableSurfsToFS $SUBJID

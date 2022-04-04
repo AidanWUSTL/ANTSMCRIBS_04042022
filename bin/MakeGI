@@ -1,0 +1,99 @@
+#!/bin/bash
+
+if [ -z "$1" ]
+then
+	echo "Usage: $0 <subject id>"
+	exit
+fi
+
+SUBJID=$1
+
+SURFDIR=SurfReconDeformable/$1
+
+HEMIS="lh
+rh"
+
+if [ "YES" == "YES" ]
+then
+	for HEMI in $HEMIS
+	do
+		D=`mktemp -d`
+		DeformableReorderVertices $SURFDIR $D
+		extract-pointset-surface -hull -i $SURFDIR/meshes/pial-$HEMI-reordered.vtp -implicit $SURFDIR/meshes/pial-$HEMI-reordered-hull-implicit.nii.gz -o $SURFDIR/meshes/pial-$HEMI-reordered-hull.vtp
+		rm -fr $D
+		#mri_convert -rl freesurfer/$1/mri/T2.mgz -ns 1 $SURFDIR/meshes/pial-$HEMI-hull-implicit.nii.gz $SURFDIR/meshes/pial-$HEMI-hull-implicit.nii.gz
+		#mri_binarize --i $SURFDIR/meshes/pial-$HEMI-hull-implicit.nii.gz --o $SURFDIR/meshes/pial-$HEMI-hull-implicit-inside.nii.gz --min 0 --inv --noverbose
+		#ImageMath 3 $SURFDIR/meshes/pial-$HEMI-hull-implicit.nii.gz MaurerDistance $SURFDIR/meshes/pial-$HEMI-hull-implicit-inside.nii.gz
+	
+		#run fslmaths $rdir/${subj}_${h}_dist.nii.gz -uthr 0 -abs -bin -mul $tissues -thr 2 -bin $rdir/${subj}_${h}_outerpial.nii.gz
+		#$HOME/klaplace/klaplace -dims 100 $SURFDIR/meshes/pial-$HEMI-reordered.vtp $SURFDIR/meshes/pial-$HEMI-reordered-hull.vtp -surfaceCorrespondence $SURFDIR/meshes/correspondence-$HEMI-reordered.vtp -thread `nproc`
+		#rm -f $SURFDIR/meshes/pial-$HEMI-hull-implicit-inside.nii.gz
+		#MakeGIWriteGI $1 $HEMI aparc+DKTatlas
+		MakeGIWriteGI $1 $HEMI aparc
+	done
+fi
+
+
+#  # compute the convex hull
+#  if [ ! -f $rdir/${subj}_outerpial.surf.vtk ];then
+#    tissues=$anatDir/${subj}_drawem_tissue_labels.nii.gz
+#    for h in left right;do
+#      if [ ! -f $rdir/${subj}_${h}_outerpial.surf.vtk ];then
+#        # compute outside surface for GI
+#        run wb_command -create-signed-distance-volume $surfdir/${subj}_${h}_pial.surf.gii $tissues $rdir/${subj}_${h}_dist.nii.gz
+#        run fslmaths $rdir/${subj}_${h}_dist.nii.gz -uthr 0 -abs -bin -mul $tissues -thr 2 -bin $rdir/${subj}_${h}_outerpial.nii.gz
+#        # smooth surface
+#        run mirtk dilate-image $rdir/${subj}_${h}_outerpial.nii.gz $rdir/${subj}_${h}_outerpial.nii.gz -iterations 3
+#        run mirtk erode-image $rdir/${subj}_${h}_outerpial.nii.gz $rdir/${subj}_${h}_outerpial.nii.gz -iterations 2
+#        run mirtk extract-surface $rdir/${subj}_${h}_outerpial.nii.gz $rdir/${subj}_${h}_outerpial.surf-temp.vtk -isovalue 0.5 -blur 1
+#        # project labels
+#        run mirtk project-onto-surface $rdir/${subj}_${h}_outerpial.surf-temp.vtk $rdir/${subj}_${h}_outerpial.surf.vtk -surface $rdir/${subj}_${h}_pial.surf.vtk -scalars drawem
+#        run rm $rdir/${subj}_${h}_outerpial.nii.gz $rdir/${subj}_${h}_outerpial.surf-temp.vtk
+#      fi
+#    done
+#    run mirtk convert-pointset $rdir/${subj}_left_outerpial.surf.vtk $rdir/${subj}_right_outerpial.surf.vtk $rdir/${subj}_outerpial.surf.vtk
+#    run rm $rdir/${subj}_left_outerpial.surf.vtk $rdir/${subj}_right_outerpial.surf.vtk $rdir/${subj}_left_pial.surf.vtk $rdir/${subj}_right_pial.surf.vtk
+#  fi
+#
+#m -f $SURFDIR/meshes/pial-${HEMI}-reordered-out*
+
+
+#/home/addo/pialcollisionfix/MCRIBS/MIRTK/MIRTK-install/lib/tools/deform-mesh `pwd`/$SURFDIR/meshes/pial-${HEMI}-reordered.vtp `pwd`/$SURFDIR/meshes/pial-${HEMI}-reordered-out.vtp -debug-prefix `pwd`/$SURFDIR/meshes/pial-${HEMI}-reordered-out- -debug-interval 5 -distance-image `pwd`/$SURFDIR/meshes/pial-$HEMI-hull-implicit.nii.gz -level-prefix False -distance 1 -inflation 0.5 -distortion 0.05 -optimizer EulerMethod -momentum 0.9 -levels 6 -remesh 0 -neighborhood 2 -debug 1
+
+#-spring 5 -gauss-curvature 1 -min-active 10% -min-distance 0.1 -debug-prefix `pwd`/$SURFDIR/meshes/pial-${HEMI}-reordered-out- -remesh 0 -distance-image `pwd`/$SURFDIR/meshes/pial-$HEMI-hull-implicit.nii.gz -distance 1 -fast-collision-test False -step 0.1 -delta 0.0001 -gauss-curvature-outside 1.0 -gauss-curvature-minimum 0.1 -threads 24 -debug 1 -level-prefix False
+
+#/home/addo/pialcollisionfix/MCRIBS/MIRTK/MIRTK-install/lib/tools/deform-mesh `pwd`/$SURFDIR/meshes/pial-${HEMI}-reordered.vtp `pwd`/$SURFDIR/meshes/pial-${HEMI}-reordered-inflated.vtp -inflate-brain -verbose 1
+
+#./extract_all_vtp_indir.sh TissueSeg/${1}_t2w_restore.nii.gz SurfReconDeformable/${1}/meshes
+#/home/addo/pialcollisionfix/MCRIBS/MIRTK/MIRTK-install/lib/tools/deform-mesh `pwd`/$SURFDIR/meshes/pial-${HEMI}-reordered.vtp `pwd`/$SURFDIR/meshes/pial-${HEMI}-reordered-out.vtp -debug-prefix `pwd`/$SURFDIR/meshes/pial-${HEMI}-reordered-out- -debug-interval 5 -debug-prefix `pwd`/$SURFDIR/meshes/pial-${HEMI}-reordered-out- -remesh 0 -distance-image `pwd`/$SURFDIR/meshes/pial-$HEMI-hull-implicit.nii.gz -distance 1 -fast-collision-test True -distance-measure normal -lowpass 2 -step 0.1 -delta 0.0001 -threads 24 -debug 1 -level-prefix False
+
+#    if (OPTION("-inflate-brain")) { // cf. FreeSurfer's mris_inflate
+#      inflate_brain = true;
+#      nlevels = 6;
+#      navgs = GradientAveraging(1, 6);
+#      nsteps.resize(1);
+#      nsteps[0] = 10;
+#      inflation.Weight(.5);   //  1 / 2 b/c InflationForce   gradient weight incl. factor 2
+#      distortion.Weight(.05); // .1 / 2 b/c MetricDistortion gradient weight incl. factor 2
+#      inflation_error.Threshold(.015);
+#      max_dt.resize(1);
+#      max_dt[0] = .9;
+#      model.NeighborhoodRadius(2);
+#      UniquePtr<EulerMethodWithMomentum> euler(new EulerMethodWithMomentum());
+#      euler->Momentum(.9);
+#      euler->NormalizeStepLength(false);
+#      euler->MaximumDisplacement(1.0);
+#      optimizer.reset(euler.release());
+#      center_output    = true;
+#      match_area       = true;
+#      signed_gradient  = false;
+#      track_name       = "SulcalDepth";
+#      track_zero_mean  = true;
+#      track_unit_var   = false;
+#      track_use_median = false;
+#    }
+#
+
+#gauss-curvature 0.4 -repulsion-width 1 -min-active 1% -min-distance 0.5 -implicit-surface `pwd`/$SURFDIR/meshes/pial-$HEMI-hull-implicit.nii.gz -remesh 0 -distance-measure normal -distance 1 -normal 1 -debug-interval 1 -debug-prefix `pwd`/$SURFDIR/meshes/pial-${HEMI}-reordered-out -debug 4
+
+#-debug-interval 999 -image /home/addo/MCRIownCloud/deve2-chris.adamson/neonatal/OrigImagesLabelledLaPrem/SurfReconDeformable/P04/temp/t2w-image.nii.gz -edge-distance-median 1 -repulsion-width 1.0 -repulsion-distance 0.5 -min-distance 0.1 -edge-distance 1.0 -gauss-curvature-inside 2.0 -epsilon 1e-06 -edge-distance-smoothing 1 -fast-collision-test False -curvature 2.0 -delta 0.01 -distance 1 -edge-distance-type "Neonatal T2-w cGM/CSF" -gauss-curvature-outside 1.0 -distance-averaging 4 2 1 -debug 1 -negative-gauss-curvature-action inflate -gauss-curvature 0.8 -min-active 5% -implicit-surface /home/addo/MCRIownCloud/deve2-chris.adamson/neonatal/OrigImagesLabelledLaPrem/SurfReconDeformable/P04/temp/gm_border_dt.nii.gz -wm-mask /home/addo/MCRIownCloud/deve2-chris.adamson/neonatal/OrigImagesLabelledLaPrem/SurfReconDeformable/P04/temp/white-matter-mask.nii.gz -edge-distance-max-depth 5.0 -steps 25 50 100 -debug-prefix /home/addo/MCRIownCloud/deve2-chris.adamson/neonatal/OrigImagesLabelledLaPrem/SurfReconDeformable/P04/temp/pial-6- -distance-hole-filling False -distance-threshold 2.0 -gauss-curvature-maximum 0.4 -optimizer EulerMethod -level-prefix False -step 0.2 -distance-measure normal -reset-status True -edge-distance-averaging 4 2 1 -mask /home/addo/MCRIownCloud/deve2-chris.adamson/neonatal/OrigImagesLabelledLaPrem/SurfReconDeformable/P04/temp/pial-foreground.nii.gz -gauss-curvature-minimum 0.1 -repulsion 2.0 -distance-max-depth 4.0 -gm-mask /home/addo/MCRIownCloud/deve2-chris.adamson/neonatal/OrigImagesLabelledLaPrem/SurfReconDeformable/P04/temp/gray-matter-mask.nii.gz -non-self-intersection True -threads 12

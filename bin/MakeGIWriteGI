@@ -1,0 +1,59 @@
+#!/usr/bin/env python3
+
+import vtk
+import numpy
+import sys
+import os
+import freesurfer
+import nibabel
+import getopt
+
+import VTPUtils
+import GraphUtils
+import pandas
+
+opts, args = getopt.getopt(sys.argv[1:], "vh", ['surf-volgeom='])
+
+if len(args) != 3:
+    print("The number of arguments must be 2")
+    print((sys.argv[0] + " <subjectid> <hemi> <atlas>"))
+    exit()
+
+subjID = args[0]
+Hemi = args[1]
+Atlas = args[2]
+
+SubjectsDir = 'freesurfer'
+inDir = os.path.join('SurfReconDeformable', subjID)
+PialSurf = VTPUtils.readVTPSurf(os.path.join(inDir, 'meshes', 'pial-' + Hemi + '-reordered.vtp'))
+OuterSurf = VTPUtils.readVTPSurf(os.path.join(inDir, 'meshes', 'correspondence-' + Hemi + '-reordered.vtp_warpedMesh.vtp'))
+AnnotFileName = os.path.join(SubjectsDir, subjID, 'label', Hemi + "." + Atlas + ".annot")
+Annot = freesurfer.readAnnot(AnnotFileName)
+PialFaceNormals, PialFaceAreas, PialVertexNormals, PialVertexAreas = GraphUtils.surfaceAreasNormals(PialSurf)
+OuterFaceNormals, OuterFaceAreas, OuterVertexNormals, OuterVertexAreas = GraphUtils.surfaceAreasNormals(OuterSurf)
+
+outDF = pandas.DataFrame(columns = ['StructName', 'LGI', 'SurfArea', 'OuterSurfArea'])
+outDF.StructName = Annot['colortable']['struct_names']
+
+outDF = outDF[outDF.StructName != 'ctx-' + Hemi + '-unknown']
+outDF = outDF[outDF.StructName != 'unknown']
+
+#pd = pandas.DataFrame(columns = outDF.columns)
+#pd['StructName'] = pandas.Series('Medial_Wall')
+#pd = dict.fromkeys(outDF.columns.names, numpy.nan)
+
+#pd['StructName'] = 'Medial_Wall'
+#outDF = outDF.append(pd, ignore_index = True)
+structsAndLabels = pandas.Series(index = Annot['colortable']['struct_names'], data = Annot['colortable']['labels'])
+
+for curStructIDX in outDF.index:
+    curStructName = outDF.loc[curStructIDX, 'StructName']
+    I = numpy.where(Annot['label'] == structsAndLabels.loc[curStructName])[0]
+
+    outDF.loc[curStructIDX, 'SurfArea'] = numpy.sum(PialVertexAreas[I])
+    outDF.loc[curStructIDX, 'OuterSurfArea'] = numpy.sum(OuterVertexAreas[I])
+    outDF.loc[curStructIDX, 'LGI'] = outDF.loc[curStructIDX, 'SurfArea'] / outDF.loc[curStructIDX, 'OuterSurfArea']
+
+print('writing')
+outDF.to_csv(os.path.join(SubjectsDir, subjID, 'stats', Hemi + "." + Atlas + ".lgi.stats"), index = False)
+

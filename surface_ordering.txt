@@ -1,0 +1,428 @@
+> subdivide-brain-image SUBJID/TissueSeg/SUBJID_all_labels_manedit.nii.gz /recon/regions.nii.gz -cb 17 18 -wm 51..82 1..4 40..47 85..87 48 49 50 -fg SUBJID/TissueSeg/SUBJID_brain_mask.nii.gz -subcortical-closing 5 -brainstem-closing 5 -bs 19 -gm 5..16 20..39 -output-inner-cortical-distance /recon/cortical-hull-dmap.nii.gz -cerebellum-closing 5 -lh 1 3 5 7 9 11 13 15 17 21 23 25 27 29 31 33 35 37 39 41 43 45 47 49 51 53 55 57 59 61 64 66 68 70 72 74 76 78 80 82 87 -sb 40..47 85..87 48 -bs+cb True -rh 2 4 6 8 10 12 14 16 18 20 22 24 26 28 30 32 34 36 38 40 42 44 46 50 52 54 56 58 60 62 63 65 67 69 71 73 75 77 79 81 86
+
+makes recon/regions.nii.gz and brainstem+cerebellum-iso.vtp
+
+erebrum-rh-mask.nii.gz
+cerebrum-rh-dmap.nii.gz
+
+
+> calculate-element-wise SUBJID/TissueSeg/SUBJID_brain_mask.nii.gz -mask 0 -set 1 -pad 0 -out /temp/brain-mask-1.nii.gz binary
+
+All non-zero voxels
+brain-mask-1.nii.gz
+
+> transform-image /temp/brain-mask-1.nii.gz /temp/brain-mask-2.nii.gz -type float -interp linear -target /recon/regions.nii.gz -dofin Id
+
+Transform into regions.nii.gz space (so cropping).
+brain-mask-2.nii.gz
+
+> calculate-element-wise /temp/brain-mask-2.nii.gz -threshold-le 0 -set 1 -out /temp/brain-mask.nii.gz binary
+
+> close-image /temp/brain-mask.nii.gz /temp/brain-mask.nii.gz -iterations 5
+
+Binarize and close
+brain-mask.nii.gz
+
+Resampling T2-weighted image to standard RAS space
+> transform-image SUBJID/RawT2RadiologicalIsotropic/SUBJID.nii.gz /temp/t2w-image.nii.gz -type float -Sp 0 -interp "fast cubic bspline with padding" -target /temp/brain-mask.nii.gz -dofin Id
+
+t2w-image.nii.gz
+
+> calculate-element-wise SUBJID/TissueSeg/SUBJID_all_labels_manedit.nii.gz -label 48 -set 1 -pad 0 -out /temp/corpus-callosum-mask-1.nii.gz binary
+
+corpus-callosum-mask-1.nii.gz
+Extract CC label from label image
+
+> transform-image /temp/corpus-callosum-mask-1.nii.gz /temp/corpus-callosum-mask-2.nii.gz -type float -interp linear -target /temp/brain-mask.nii.gz -dofin Id
+
+corpus-callosum-mask-2.nii.gz
+Interpolate into brain_mask space
+
+ calculate-element-wise /temp/corpus-callosum-mask-2.nii.gz -threshold-le 0.5 -set 1 -out /temp/corpus-callosum-mask.nii.gz binary
+
+corpus-callosum-mask.nii.gz
+Binarize.
+
+Reconstructing boundary of right cerebral hemisphere segmentation
+> calculate-element-wise /recon/regions.nii.gz -label 2 -set 1 -pad 0 -out /temp/cerebrum-rh-mask.nii.gz binary
+
+cerebrum-rh-mask.nii.gz
+Take label from regions.
+
+> calculate-distance-map /temp/cerebrum-rh-mask.nii.gz /temp/cerebrum-rh-dmap.nii.gz -distance euclidean -isotropic 1
+
+cerebrum-rh-dmap.nii.gz
+Distance map of cerebrum-rh-mask.nii.gz.
+
+> extract-surface /temp/cerebrum-rh-dmap.nii.gz /temp/cerebrum-rh-iso.vtp -close True -isovalue 0 -blur 0
+
+cerebrum-rh-iso.vtp
+Make marching cubes wrapping surface around right hemi wm.
+
+> extract-pointset-surface -input /temp/cerebrum-rh-iso.vtp -hull -output /temp/cerebrum-rh-hull-1.vtp
+
+cerebrum-rh-hull-1.vtp
+The -hull option makes a hull.
+
+Remaining options smooth the hull a bit.
+
+> remesh-surface /temp/cerebrum-rh-hull-1.vtp /temp/cerebrum-rh-hull-2.vtp -edge-length 1
+
+> smooth-surface /temp/cerebrum-rh-hull-2.vtp /temp/cerebrum-rh-hull-2.vtp -mu -0.34 -combinatorial -exclnode -iterations 100 -lambda 0.33
+
+> remesh-surface /temp/cerebrum-rh-hull-2.vtp /temp/cerebrum-rh-hull-3.vtp -edge-length 1
+
+> smooth-surface /temp/cerebrum-rh-hull-3.vtp /temp/cerebrum-rh-hull-3.vtp -mu -0.34 -combinatorial -exclnode -iterations 100 -lambda 0.33
+
+> remesh-surface /temp/cerebrum-rh-hull-3.vtp /temp/cerebrum-rh-hull-4.vtp -edge-length 1
+
+> smooth-surface /temp/cerebrum-rh-hull-4.vtp /temp/cerebrum-rh-hull-4.vtp -mu -0.34 -combinatorial -exclnode -iterations 100 -lambda 0.33
+
+> remesh-surface /temp/cerebrum-rh-hull-4.vtp /temp/cerebrum-rh-hull-5.vtp -edge-length 1
+
+> smooth-surface /temp/cerebrum-rh-hull-5.vtp /temp/cerebrum-rh-hull-5.vtp -mu -0.34 -combinatorial -exclnode -iterations 100 -lambda 0.33
+
+> remesh-surface /temp/cerebrum-rh-hull-5.vtp /temp/cerebrum-rh-hull-6.vtp -edge-length 1
+
+> smooth-surface /temp/cerebrum-rh-hull-6.vtp /temp/cerebrum-rh-hull-6.vtp -mu -0.34 -combinatorial -exclnode -iterations 100 -lambda 0.33
+
+> remesh-surface /temp/cerebrum-rh-hull-6.vtp /temp/cerebrum-rh-hull-7.vtp -edge-length 1
+
+> smooth-surface /temp/cerebrum-rh-hull-7.vtp /temp/cerebrum-rh-hull-7.vtp -mu -0.34 -combinatorial -exclnode -iterations 100 -lambda 0.33
+
+> remesh-surface /temp/cerebrum-rh-hull-7.vtp /temp/cerebrum-rh-hull-8.vtp -edge-length 1
+
+> smooth-surface /temp/cerebrum-rh-hull-8.vtp /temp/cerebrum-rh-hull-8.vtp -mu -0.34 -combinatorial -exclnode -iterations 100 -lambda 0.33
+
+> remesh-surface /temp/cerebrum-rh-hull-8.vtp /temp/cerebrum-rh-hull-9.vtp -edge-length 1
+
+> smooth-surface /temp/cerebrum-rh-hull-9.vtp /temp/cerebrum-rh-hull-9.vtp -mu -0.34 -combinatorial -exclnode -iterations 100 -lambda 0.33
+
+> remesh-surface /temp/cerebrum-rh-hull-9.vtp /temp/cerebrum-rh-hull-10.vtp -edge-length 1
+
+> smooth-surface /temp/cerebrum-rh-hull-10.vtp /temp/cerebrum-rh-hull-10.vtp -mu -0.34 -combinatorial -exclnode -iterations 100 -lambda 0.33
+
+> remesh-surface /temp/cerebrum-rh-hull-10.vtp /temp/cerebrum-rh-hull-11.vtp -edge-length 1
+
+> smooth-surface /temp/cerebrum-rh-hull-11.vtp /temp/cerebrum-rh-hull-11.vtp -mu -0.34 -combinatorial -exclnode -iterations 100 -lambda 0.33
+
+> project-onto-surface /temp/cerebrum-rh-hull.vtp /temp/cerebrum-rh-1.vtp -labels /temp/corpus-callosum-mask.nii.gz -name ImplicitSurfaceFillMask -dilation-radius 20 -fill False
+
+
+> calculate-element-wise /temp/cerebrum-rh-1.vtp -scalars ImplicitSurfaceFillMask -threshold-inside 0 0 -set 0 -pad 1 -out /temp/cerebrum-rh-1.vtp
+
+cerebrum-rh-1.vtp
+Project the corpus callosum mask onto the cerebrum mask. Set it to the pointdata field ImplicitSurfaceFillMask 'Cerebrum1ImplicitSurfaceFillMask.png'
+
+
+> deform-mesh /temp/cerebrum-rh-1.vtp /temp/cerebrum-rh-2.vtp -max-edge-length 1 -debug-interval 10 -gauss-curvature 0.4 -repulsion-width 1 -min-active 1% -min-distance 0.5 -triangle-inversion True -implicit-surface /temp/cerebrum-rh-dmap.nii.gz -min-width 0.2 -steps 300 200 -debug-prefix /temp/cerebrum-rh-2- -distance-hole-filling True -distance-threshold 2 -gauss-curvature-maximum 0.5 -optimizer EulerMethod -epsilon 1e-08 -level-prefix False -fast-collision-test True -curvature 0.8 -extrinsic-energy True -step 0.5 0.1 -delta 0.01 -reset-status True -distance-measure normal -distance 1 -min-edge-length 0.5 -remesh 1 -gauss-curvature-outside 1 -gauss-curvature-minimum 0.1 -repulsion 4 -debug 1 -non-self-intersection True -distance-max-depth 5 -repulsion-distance 0.5
+
+cerebrum-rh-2.vtp
+
+Evolve the surface
+
+# shrink the hull around the cerebrum-rh-iso.vtp to make an initial
+
+cerebrum-rh-3.vtp
+cerebrum-lh-iso.vtp
+cerebrum-lh-hull-3.vtp
+cerebrum-lh-hull-2.vtp
+cerebrum-lh-hull-1.vtp
+cerebrum-lh-hull-5.vtp
+cerebrum-lh-hull-4.vtp
+cerebrum-lh-hull-6.vtp
+cerebrum-lh-hull-7.vtp
+cerebrum-lh-hull-9.vtp
+cerebrum-lh-hull-8.vtp
+cerebrum-lh-hull-10.vtp
+cerebrum-lh-hull.vtp
+cerebrum-lh-1.vtp
+cerebrum-lh-2-output_000.vtp
+cerebrum-lh-2-output_010.vtp
+cerebrum-lh-2-output_020.vtp
+cerebrum-lh-2-output_030.vtp
+cerebrum-lh-2-output_040.vtp
+cerebrum-lh-2-output_050.vtp
+cerebrum-lh-2-output_060.vtp
+cerebrum-lh-2-output_070.vtp
+cerebrum-lh-2-output_080.vtp
+cerebrum-lh-2-output_090.vtp
+cerebrum-lh-2-output_100.vtp
+cerebrum-lh-2-output_110.vtp
+cerebrum-lh-2-output_120.vtp
+cerebrum-lh-2-output_130.vtp
+cerebrum-lh-2-output_140.vtp
+cerebrum-lh-2.vtp
+cerebrum-lh-2-output_150.vtp
+cerebrum-lh-3.vtp
+cerebrum-1.vtp
+cerebrum-2.vtp
+cerebrum-3.vtp
+white-1.vtp
+white-2-output_000.vtp
+white-2-output_010.vtp
+white-2-output_020.vtp
+white-2-output_030.vtp
+white-2-output_040.vtp
+white-2-output_050.vtp
+white-2-output_060.vtp
+white-2-output_070.vtp
+white-2-output_080.vtp
+white-2-output_090.vtp
+white-2-output_100.vtp
+white-2-output_110.vtp
+white-2-output_120.vtp
+white-2-output_130.vtp
+white-2-output_140.vtp
+white-2-output_150.vtp
+white-2-output_160.vtp
+white-2-output_170.vtp
+white-2-output_180.vtp
+white-2-output_190.vtp
+white-2-output_200.vtp
+white-2.vtp
+pial-1.vtp
+pial-2-output_000.vtp
+pial-2-output_010.vtp
+pial-2.vtp
+pial-3.vtp
+pial-4.vtp
+pial-5.vtp
+pial-6-output_000.vtp
+pial-6-output_010.vtp
+pial-6-output_020.vtp
+pial-6-output_030.vtp
+pial-6-output_040.vtp
+pial-6-output_050.vtp
+pial-6-output_060.vtp
+pial-6-output_070.vtp
+pial-6.vtp
+
+
+> delete-pointset-attributes /temp/cerebrum-rh-2.vtp /temp/cerebrum-rh-3.vtp -pointdata ImplicitSurfaceFillMask
+
+> evaluate-surface-mesh /temp/cerebrum-rh-3.vtp /temp/cerebrum-rh.vtp -v -threads 0 -collisions 0
+
+> delete-pointset-attributes /temp/cerebrum-rh.vtp /temp/cerebrum-rh.vtp -pointdata CollisionMask -celldata CollisionType
+
+Reconstructing boundary of left cerebral hemisphere segmentation
+> calculate-element-wise /recon/regions.nii.gz -label 3 -set 1 -pad 0 -out /temp/cerebrum-lh-mask.nii.gz binary
+
+> calculate-distance-map /temp/cerebrum-lh-mask.nii.gz /temp/cerebrum-lh-dmap.nii.gz -distance euclidean -isotropic 1
+
+> extract-surface /temp/cerebrum-lh-dmap.nii.gz /temp/cerebrum-lh-iso.vtp -close True -isovalue 0 -blur 0
+
+> extract-pointset-surface -input /temp/cerebrum-lh-iso.vtp -hull -output /temp/cerebrum-lh-hull-1.vtp
+
+Generic Warning: In /home/addo/MCRIBS/VTK/VTK/Common/Core/vtkMath.cxx, line 564
+Unable to factor linear system
+
+> remesh-surface /temp/cerebrum-lh-hull-1.vtp /temp/cerebrum-lh-hull-2.vtp -edge-length 1
+
+> smooth-surface /temp/cerebrum-lh-hull-2.vtp /temp/cerebrum-lh-hull-2.vtp -mu -0.34 -combinatorial -exclnode -iterations 100 -lambda 0.33
+
+> remesh-surface /temp/cerebrum-lh-hull-2.vtp /temp/cerebrum-lh-hull-3.vtp -edge-length 1
+
+> smooth-surface /temp/cerebrum-lh-hull-3.vtp /temp/cerebrum-lh-hull-3.vtp -mu -0.34 -combinatorial -exclnode -iterations 100 -lambda 0.33
+
+> remesh-surface /temp/cerebrum-lh-hull-3.vtp /temp/cerebrum-lh-hull-4.vtp -edge-length 1
+
+> smooth-surface /temp/cerebrum-lh-hull-4.vtp /temp/cerebrum-lh-hull-4.vtp -mu -0.34 -combinatorial -exclnode -iterations 100 -lambda 0.33
+
+> remesh-surface /temp/cerebrum-lh-hull-4.vtp /temp/cerebrum-lh-hull-5.vtp -edge-length 1
+
+> smooth-surface /temp/cerebrum-lh-hull-5.vtp /temp/cerebrum-lh-hull-5.vtp -mu -0.34 -combinatorial -exclnode -iterations 100 -lambda 0.33
+
+> remesh-surface /temp/cerebrum-lh-hull-5.vtp /temp/cerebrum-lh-hull-6.vtp -edge-length 1
+
+> smooth-surface /temp/cerebrum-lh-hull-6.vtp /temp/cerebrum-lh-hull-6.vtp -mu -0.34 -combinatorial -exclnode -iterations 100 -lambda 0.33
+
+> remesh-surface /temp/cerebrum-lh-hull-6.vtp /temp/cerebrum-lh-hull-7.vtp -edge-length 1
+
+> smooth-surface /temp/cerebrum-lh-hull-7.vtp /temp/cerebrum-lh-hull-7.vtp -mu -0.34 -combinatorial -exclnode -iterations 100 -lambda 0.33
+
+> remesh-surface /temp/cerebrum-lh-hull-7.vtp /temp/cerebrum-lh-hull-8.vtp -edge-length 1
+
+> smooth-surface /temp/cerebrum-lh-hull-8.vtp /temp/cerebrum-lh-hull-8.vtp -mu -0.34 -combinatorial -exclnode -iterations 100 -lambda 0.33
+
+> remesh-surface /temp/cerebrum-lh-hull-8.vtp /temp/cerebrum-lh-hull-9.vtp -edge-length 1
+
+> smooth-surface /temp/cerebrum-lh-hull-9.vtp /temp/cerebrum-lh-hull-9.vtp -mu -0.34 -combinatorial -exclnode -iterations 100 -lambda 0.33
+
+> remesh-surface /temp/cerebrum-lh-hull-9.vtp /temp/cerebrum-lh-hull-10.vtp -edge-length 1
+
+> smooth-surface /temp/cerebrum-lh-hull-10.vtp /temp/cerebrum-lh-hull-10.vtp -mu -0.34 -combinatorial -exclnode -iterations 100 -lambda 0.33
+
+> remesh-surface /temp/cerebrum-lh-hull-10.vtp /temp/cerebrum-lh-hull-11.vtp -edge-length 1
+
+> smooth-surface /temp/cerebrum-lh-hull-11.vtp /temp/cerebrum-lh-hull-11.vtp -mu -0.34 -combinatorial -exclnode -iterations 100 -lambda 0.33
+
+> project-onto-surface /temp/cerebrum-lh-hull.vtp /temp/cerebrum-lh-1.vtp -labels /temp/corpus-callosum-mask.nii.gz -name ImplicitSurfaceFillMask -dilation-radius 20 -fill False
+
+> calculate-element-wise /temp/cerebrum-lh-1.vtp -scalars ImplicitSurfaceFillMask -threshold-inside 0 0 -set 0 -pad 1 -out /temp/cerebrum-lh-1.vtp
+
+> deform-mesh /temp/cerebrum-lh-1.vtp /temp/cerebrum-lh-2.vtp -max-edge-length 1 -debug-interval 10 -gauss-curvature 0.4 -repulsion-width 1 -min-active 1% -min-distance 0.5 -triangle-inversion True -implicit-surface /temp/cerebrum-lh-dmap.nii.gz -min-width 0.2 -steps 300 200 -debug-prefix /temp/cerebrum-lh-2- -distance-hole-filling True -distance-threshold 2 -gauss-curvature-maximum 0.5 -optimizer EulerMethod -epsilon 1e-08 -level-prefix False -fast-collision-test True -curvature 0.8 -extrinsic-energy True -step 0.5 0.1 -delta 0.01 -reset-status True -distance-measure normal -distance 1 -min-edge-length 0.5 -remesh 1 -gauss-curvature-outside 1 -gauss-curvature-minimum 0.1 -repulsion 4 -debug 1 -non-self-intersection True -distance-max-depth 5 -repulsion-distance 0.5
+> delete-pointset-attributes /temp/cerebrum-lh-2.vtp /temp/cerebrum-lh-3.vtp -pointdata ImplicitSurfaceFillMask
+
+> evaluate-surface-mesh /temp/cerebrum-lh-3.vtp /temp/cerebrum-lh.vtp -v -threads 0 -collisions 0
+
+> delete-pointset-attributes /temp/cerebrum-lh.vtp /temp/cerebrum-lh.vtp -pointdata CollisionMask -celldata CollisionType
+
+Joining surfaces of right and left cerebral hemispheres
+> merge-surfaces -smoothing-iterations 100 -source-array RegionId -largest True -smoothing-lambda 1 -output /temp/cerebrum-1.vtp -snap-tolerance 0.1 -input /temp/cerebrum-rh.vtp /temp/cerebrum-lh.vtp -dividers True -labels /recon/regions.nii.gz -tolerance 1.0
+
+> delete-pointset-attributes /temp/cerebrum-1.vtp /temp/cerebrum-1.vtp -pointdata RegionId
+
+> evaluate-surface-mesh /temp/cerebrum-1.vtp -threads 0 -attr -topology
+
+> evaluate-surface-mesh /temp/cerebrum-1.vtp /temp/cerebrum-2.vtp -v -threads 0 -collisions 0
+
+> delete-pointset-attributes /temp/cerebrum-2.vtp /temp/cerebrum-2.vtp -pointdata CollisionMask -celldata CollisionType
+
+> calculate-element-wise /recon/regions.nii.gz -label 1 -set 1 -pad 0 -out /temp/cortex-mask.nii.gz binary
+
+> project-onto-surface /temp/cerebrum-2.vtp /temp/cerebrum-3.vtp -cell-data True -point-data False -name CortexMask -dilation-radius 0.5 -max-hole-size 100 -labels /temp/cortex-mask.nii.gz -smooth 2 -min-size 1000 -fill True
+
+> erode-scalars /temp/cerebrum-3.vtp /temp/cerebrum-3.vtp -cell-data CortexMask -iterations 2
+
+> calculate-element-wise /temp/cerebrum-3.vtp -cell-data RegionId -label 7 -set 0 -pad 1 -reset-mask -mul CortexMask -out /temp/cerebrum-3.vtp binary CortexMask
+
+> calculate-surface-attributes /temp/cerebrum-3.vtp /temp/cerebrum-3.vtp -cell-labels RegionId -border-mask RegionBorder
+
+> calculate-element-wise /temp/cerebrum-3.vtp -cell-data RegionBorder -threshold 1 -set 0 -pad 1 -reset-mask -mul RegionId -mul CortexMask -binarize 1 -out /temp/cerebrum-3.vtp char CortexMask
+
+> evaluate-surface-mesh /temp/cerebrum-3.vtp /temp/cerebrum-3.vtp -gt 0 -where CortexMask
+
+> calculate-element-wise /temp/cerebrum-3.vtp -cell-data ComponentId -binarize 1 2 -mul CortexMask -out /temp/cerebrum-3.vtp binary CortexMask
+
+> calculate-element-wise /temp/cerebrum-3.vtp -cell-data RegionId -label 1 -mul CortexMask -threshold-gt 0 -add 5 -reset-mask -label 2 -mul CortexMask -threshold-gt 0 -add 6 -out /temp/cerebrum-3.vtp
+
+> delete-pointset-attributes /temp/cerebrum-3.vtp /temp/cerebrum-3.vtp -name BoundaryMask ComponentId RegionBorder DuplicatedMask
+
+> evaluate-surface-mesh /temp/cerebrum-3.vtp -threads 0 -attr -where CortexMask -gt 0
+
+> extract-pointset-cells /temp/cerebrum-3.vtp /meshes/internal.vtp -where RegionId -lt 0
+
+> extract-pointset-cells /temp/cerebrum-3.vtp /temp/cerebrum-4.vtp -where RegionId -gt 0
+
+Creating white matter mask from segmentation image
+> calculate-element-wise SUBJID/TissueSeg/SUBJID_all_labels_manedit.nii.gz -label 51..82 -set 1 -pad 0 -out /temp/white-matter-mask-1.nii.gz binary
+
+> transform-image /temp/white-matter-mask-1.nii.gz /temp/white-matter-mask-2.nii.gz -type float -interp linear -target /temp/brain-mask.nii.gz -dofin Id
+
+> calculate-element-wise /temp/white-matter-mask-2.nii.gz -threshold-le 0.5 -set 1 -out /temp/white-matter-mask.nii.gz binary
+
+Creating gray matter mask from segmentation image
+> calculate-element-wise SUBJID/TissueSeg/SUBJID_all_labels_manedit.nii.gz -label 5..16 20..39 -set 1 -pad 0 -out /temp/gray-matter-mask-1.nii.gz binary
+
+> transform-image /temp/gray-matter-mask-1.nii.gz /temp/gray-matter-mask-2.nii.gz -type float -interp linear -target /temp/brain-mask.nii.gz -dofin Id
+
+> calculate-element-wise /temp/gray-matter-mask-2.nii.gz -threshold-le 0.5 -set 1 -out /temp/gray-matter-mask.nii.gz binary
+
+Creating deep gray matter mask from segmentation image
+> calculate-element-wise SUBJID/TissueSeg/SUBJID_all_labels_manedit.nii.gz -label 1..4 40..47 85..87 -set 1 -pad 0 -out /temp/deep-gray-matter-mask-1.nii.gz binary
+
+> transform-image /temp/deep-gray-matter-mask-1.nii.gz /temp/deep-gray-matter-mask-2.nii.gz -type float -interp linear -target /temp/brain-mask.nii.gz -dofin Id
+
+> calculate-element-wise /temp/deep-gray-matter-mask-2.nii.gz -threshold-le 0.5 -set 1 -out /temp/deep-gray-matter-mask.nii.gz binary
+
+> calculate-element-wise SUBJID/TissueSeg/SUBJID_all_labels_manedit.nii.gz -label 49 50 -set 1 -pad 0 -out /temp/ventricles-mask-1.nii.gz binary
+
+> transform-image /temp/ventricles-mask-1.nii.gz /temp/ventricles-mask-2.nii.gz -type float -interp linear -target /temp/brain-mask.nii.gz -dofin Id
+
+> calculate-element-wise /temp/ventricles-mask-2.nii.gz -threshold-le 0.5 -set 1 -out /temp/ventricles-mask.nii.gz binary
+
+Computing lateral ventricles distance map
+> calculate-distance-map /temp/ventricles-mask.nii.gz /temp/ventricles-dmap.nii.gz -distance euclidean -isotropic 1
+
+Reconstructing inner-cortical surface
+> copy-pointset-attributes /temp/cerebrum.vtp /temp/cerebrum.vtp /temp/white-1.vtp -unanimous -celldata-as-pointdata CortexMask InitialStatus other binary
+
+> erode-scalars /temp/white-1.vtp /temp/white-1.vtp -array InitialStatus -iterations 8
+
+> calculate-element-wise /temp/deep-gray-matter-mask.nii.gz -binarize 0 0 -out /temp/white-foreground-1.nii.gz binary
+
+> close-image /temp/white-foreground-1.nii.gz /temp/white-foreground.nii.gz -connectivity 18 -iterations 2
+
+> deform-mesh /temp/white-1.vtp /temp/white-2.vtp -debug-interval 10 -ventricles-distance-image /temp/ventricles-dmap.nii.gz -image /temp/t2w-image.nii.gz -edge-distance-median 1 -repulsion-width 1.0 -repulsion-distance 0.5 -min-width 0.1 -edge-distance 1.0 -gauss-curvature-inside 1.0 -epsilon 1e-06 -edge-distance-smoothing 1 -fast-collision-test False -curvature 2.0 -delta 0.01 -min-edge-length 0.5 -edge-distance-type "Neonatal T2-w WM/cGM" -gauss-curvature-outside 0.5 -distance-averaging 4 2 1 -debug 1 -max-edge-length 1.0 -gauss-curvature 0.5 -min-active 1% -triangle-inversion True -inner-cortical-distance-image /recon/cortical-hull-dmap.nii.gz -wm-mask /temp/white-matter-mask.nii.gz -edge-distance-max-depth 5.0 -steps 50 100 -debug-prefix /temp/white-2- -gauss-curvature-maximum 0.2 -optimizer EulerMethod -level-prefix False -extrinsic-energy True -step 0.2 -reset-status True -remesh 1 -edge-distance-averaging 4 2 1 -mask /temp/white-foreground.nii.gz -gauss-curvature-minimum 0.1 -repulsion 4.0 -gm-mask /temp/gray-matter-mask.nii.gz -non-self-intersection True
+
+
+> smooth-surface /temp/white-2.vtp /temp/white-3.vtp -threads 0 -iterations 100 -combinatorial -mask InitialStatus -exclnode -lambda 0.33 -mu -0.34
+
+> evaluate-surface-mesh /temp/white-3.vtp /meshes/white.vtp -v -threads 0 -collisions 0
+
+> delete-pointset-attributes /meshes/white.vtp /meshes/white.vtp -pointdata CollisionMask -celldata CollisionType
+
+> delete-pointset-attributes /temp/white-3.vtp /temp/white-3.vtp -pointdata InitialStatus
+
+Merging inner-cortical surface with internal mesh
+> convert-pointset /meshes/white.vtp /meshes/internal.vtp /meshes/white+internal.vtp -merge 0
+
+Cutting inner-cortical surface at medial cutting plane
+> extract-pointset-cells /meshes/white+internal.vtp /meshes/white-rh.vtp -normals True -where RegionId -or -eq -1 -eq -3 -eq 1 -eq 3 -eq 5
+
+> extract-pointset-cells /meshes/white+internal.vtp /meshes/white-lh.vtp -normals True -where RegionId -or -eq -1 -eq -2 -eq 2 -eq 4 -eq 6
+
+Reconstructing outer-cortical surface
+> extract-pointset-surface -input /meshes/white.vtp -outside True -mask /temp/pial-foreground.nii.gz -reference /temp/gray-matter-mask.nii.gz
+
+> calculate-element-wise /temp/pial-foreground.nii.gz -mul /temp/brain-mask.nii.gz -out /temp/pial-foreground.nii.gz
+
+> copy-pointset-attributes /meshes/white.vtp /meshes/white.vtp /temp/pial-1.vtp -unanimous -celldata-as-pointdata RegionId Status
+
+> calculate-element-wise /temp/pial-1.vtp -point-data Status -label 7 -set 0 -pad 1 -out /temp/pial-1.vtp binary
+
+> deform-mesh /temp/pial-1.vtp /temp/pial-2.vtp -optimizer EulerMethod -max-displacement 0.8 -normal-force 1 -level-prefix False -fast-collision-test False -curvature 1 -step 0.1 -min-active 10% -delta 0.0001 -min-distance 0.1 -debug-interval 10 -steps 100 -debug 1 -debug-prefix /temp/pial-2- -non-self-intersection True
+
+> copy-pointset-attributes temp/pial-2.vtp temp/pial-2.vtp temp/pial-3.vtp -unanimous -celldata-as-pointdata CortexMask
+
+> blend-surface meshes/white.vtp temp/pial-3.vtp temp/pial-3.vtp -smooth-iterations 3 -gt 0 -where CortexMask
+
+> calculate-element-wise temp/pial-3.vtp -cell-data RegionId -map 1 3 2 4 -out temp/pial-3.vtp
+
+> convert-pointset meshes/white.vtp temp/pial-3.vtp temp/pial-4.vtp -merge 0
+
+> evaluate-surface-mesh temp/pial-4.vtp temp/pial-4.vtp -v -threads 0 -attr -where CortexMask -gt 0
+
+> calculate-element-wise temp/pial-4.vtp -cell-data CortexMask -mask BoundaryMask -set 0 -out temp/pial-4.vtp
+
+> calculate-element-wise temp/pial-4.vtp -cell-data RegionId -mask BoundaryMask -add 4 -out temp/pial-4.vtp
+
+> delete-pointset-attributes temp/pial-4.vtp temp/pial-4.vtp -celldata DuplicatedMask -name ComponentId BoundaryMask
+
+> evaluate-surface-mesh temp/pial-4.vtp temp/pial-5.vtp -v -threads 0 -collisions 0
+
+> calculate-surface-attributes temp/pial-5.vtp temp/pial-5.vtp -H Curvature -vtk-curvatures
+
+> copy-pointset-attributes temp/pial-5.vtp temp/pial-5.vtp -unanimous -celldata-as-pointdata RegionId
+
+> calculate-element-wise temp/pial-5.vtp -point-data RegionId -label 3 4 -mask CollisionMask -set 1 -pad 0 -mul Curvature -threshold-ge 0 -pad 0 -out temp/pial-5.vtp binary SmoothMask
+
+> dilate-scalars temp/pial-5.vtp temp/pial-5.vtp -array SmoothMask -iterations 1
+
+> smooth-surface temp/pial-5.vtp temp/pial-5.vtp -threads 0 -iterations 1 -combinatorial -mask SmoothMask -inclnode -lambda 1
+
+> evaluate-surface-mesh temp/pial-5.vtp temp/pial-5.vtp -v -threads 0 -collisions 0
+
+> evaluate-surface-mesh temp/pial-5.vtp temp/pial-5.vtp -v -threads 0 -collisions 0
+
+> delete-pointset-attributes temp/pial-5.vtp temp/pial-5.vtp -pointdata RegionId Curvature SmoothMask CollisionMask -celldata CollisionType
+
+> copy-pointset-attributes temp/pial-5.vtp temp/pial-5.vtp -unanimous -celldata-as-pointdata RegionId Status
+
+> calculate-element-wise temp/pial-5.vtp -point-data Status -label 3 4 -set 1 -pad 0 -out temp/pial-5.vtp binary
+
+> deform-mesh temp/pial-5.vtp temp/pial-6.vtp -debug-interval 10 -image temp/t2w-image.nii.gz -edge-distance-median 1 -repulsion-width 1.0 -repulsion-distance 0.5 -min-distance 0.1 -edge-distance 1.0 -gauss-curvature-inside 2.0 -epsilon 1e-06 -edge-distance-smoothing 1 -fast-collision-test False -curvature 2.0 -delta 0.01 -edge-distance-type "Neonatal T2-w cGM/CSF" -gauss-curvature-outside 1.0 -distance-averaging 4 2 1 -debug 1 -negative-gauss-curvature-action inflate -gauss-curvature 0.8 -min-active 5% -wm-mask temp/white-matter-mask.nii.gz -edge-distance-max-depth 5.0 -steps 25 50 100 -debug-prefix temp/pial-6- -gauss-curvature-maximum 0.4 -optimizer EulerMethod -level-prefix False -step 0.2 -reset-status True -edge-distance-averaging 4 2 1 -mask temp/pial-foreground.nii.gz -gauss-curvature-minimum 0.1 -repulsion 2.0 -gm-mask temp/gray-matter-mask.nii.gz -non-self-intersection True
+
+> extract-pointset-cells temp/pial-6.vtp meshes/pial.vtp -normals True -where RegionId -or -eq -1 -eq -2 -eq -3 -eq 3 -eq 4 -eq 5 -eq 6
+
+Merging pial surface with internal mesh
+> convert-pointset meshes/pial.vtp meshes/internal.vtp meshes/pial+internal.vtp -merge 0
+
+Internal surface gets appended to the end.
+Internal surface RegionId == -1
+
+Cutting outer-cortical surface at medial cutting plane
+> extract-pointset-cells meshes/pial+internal.vtp meshes/pial-rh.vtp -normals True -where RegionId -or -eq -1 -eq -3 -eq 1 -eq 3 -eq 5
+
+> extract-pointset-cells meshes/pial+internal.vtp meshes/pial-lh.vtp -normals True -where RegionId -or -eq -1 -eq -2 -eq 2 -eq 4 -eq 6

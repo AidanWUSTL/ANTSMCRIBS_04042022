@@ -1,0 +1,20 @@
+--- VTK/VTK/Filters/General/vtkIntersectionPolyDataFilter.cxx	2022-02-18 12:05:36.522146390 +1100
++++ ./Filters/General/vtkIntersectionPolyDataFilter.cxx	2022-02-18 12:06:39.527568958 +1100
+@@ -2105,7 +2105,7 @@
+     if (val1 == 1 ||
+         (t > (0-tolerance) && t < (1+tolerance)))
+     {
+-         if (t < 1+tolerance && t > 1-tolerance)
++         if (t < 1+tolerance && t >= 1-tolerance)
+          {
+            ts1 = index1;
+          }
+@@ -2117,7 +2117,7 @@
+     if (val2 == 1 ||
+         (t > (0-tolerance) && t < (1+tolerance)))
+     {
+-        if (t < 1+tolerance && t > 1-tolerance)
++        if (t < 1+tolerance && t >= 1-tolerance)
+         {
+           ts2 = index2;
+         }

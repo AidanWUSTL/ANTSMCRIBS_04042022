@@ -1,0 +1,33 @@
+/home/addo/MCRIBS/MIRTK/MIRTK-install/lib/tools/subdivide-brain-image
+/home/addo/usb/dhcp/dhcp-rel-2/MCRIBS_T1T2/TissueSeg/sub-CC00094AN13-ses-33500_all_labels_manedit.nii.gz
+/home/addo/usb/dhcp/dhcp-rel-2/MCRIBS_T1T2/SurfReconDeformable/sub-CC00094AN13-ses-33500/recon/regions.nii.gz
+-cb 17 18
+-wm 51..82 1..4 40..47 85..87 48 49 50
+-fg /home/addo/usb/dhcp/dhcp-rel-2/MCRIBS_T1T2/TissueSeg/sub-CC00094AN13-ses-33500_brain_mask.nii.gz
+-subcortical-closing 15
+-brainstem-closing 15
+-bs 19
+-gm 5..16 20..39
+-output-inner-cortical-distance /home/addo/usb/dhcp/dhcp-rel-2/MCRIBS_T1T2/SurfReconDeformable/sub-CC00094AN13-ses-33500/recon/cortical-hull-dmap.nii.gz
+-cerebellum-closing 15
+-lh 1 3 5 7 9 11 13 15 17 21 23 25 27 29 31 33 35 37 39 41 43 45 47 49 51 53 55 57 59 61 64 66 68 70 72 74 76 78 80 82 87
+-sb 40..47 85..87 48
+-bs+cb True
+-rh 2 4 6 8 10 12 14 16 18 20 22 24 26 28 30 32 34 36 38 40 42 44 46 50 52 54 56 58 60 62 63 65 67 69 71 73 75 77 79 81 86
+
+  cout << "  This program reads a structural brain segmentation and derives from it\n";
+  cout << "  a segmentation of the brain volume into the following output labels.\n";
+  cout << "  This output segmentation can then be used to reconstruct topologically\n";
+  cout << "  correct (i.e., closed genus-0) surfaces of the cGM/WM interface for the\n";
+  cout << "  left and right hemisphere, where subcortical and deep brain structures\n";
+  cout << "  are enclosed by these so-called white surfaces. Additionally, the\n";
+  cout << "  brainstem+cerebellum segment can be respresented by another closed\n";
+  cout << "  surface mesh. The union of these reconstructured surfaces encloses\n";
+  cout << "  the entire brain volume, yet excluding cortical grey matter.\n";
+  cout << "  By deforming the joint brain surface towards the cGM/CSF interface,\n";
+  cout << "  the pial surface which encloses the entire brain volume including\n";
+  cout << "  subcortical structures can be obtained. The right/left hemisphere\n";
+  cout << "  assignment of cortical grey matter follows from the point correspondences\n";
+  cout << "  between white and pial surfaces, respectively, the RH/LH label may\n";
+  cout << "  be assigned to white surface mesh nodes upon merging the right/left\n";
+  cout << "  white surface meshes. See merge-surfaces -source-array option.\n";

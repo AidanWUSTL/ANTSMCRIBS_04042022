@@ -1,0 +1,160 @@
+#!/usr/bin/env python3
+
+import os
+import sys
+import re
+import subprocess
+import argparse
+import json
+import shutil
+import subprocess
+
+argParser = argparse.ArgumentParser(description = "Imports a subject's DHCP processed data for use with MCRIBS", usage = sys.argv[0] + " [optional file specs] <subject id> <workbench spec file>", formatter_class = argparse.RawTextHelpFormatter)
+
+#optionalFileArgGroup = argParser.add_argument_group('optionalfiles', "If files cannot be found automatically, specify them here")
+#optionalFileArgGroup.add_argument('--lhwhitesurf', help = "White surface, left hemisphere", required = False, type = str, action = 'store')
+#optionalFileArgGroup.add_argument('--rhwhitesurf', help = "White surface, right hemisphere", required = False, type = str, action = 'store')
+#optionalFileArgGroup.add_argument('--lhpialsurf', help = "Pial surface, left hemisphere", required = False, type = str, action = 'store')
+#optionalFileArgGroup.add_argument('--rhpialsurf', help = "Pial surface, right hemisphere", required = False, type = str, action = 'store')
+#optionalFileArgGroup.add_argument('--lhroi', help = "Cortex ROI, left hemisphere", required = False, type = str, action = 'store')
+#optionalFileArgGroup.add_argument('--rhroi', help = "Cortex ROI, right hemisphere", required = False, type = str, action = 'store')
+#optionalFileArgGroup.add_argument('--t2restore', help = "T2 bias-corrected image", required = False, type = str, action = 'store')
+#optionalFileArgGroup.add_argument('--drawemlabels', help = "DrawEM label image", required = False, type = str, action = 'store')
+
+argParser.add_argument('subjectid', help = "The subject ID")
+argParser.add_argument('endswithconf', help = "The endswith conf file")
+argParser.add_argument('inputdir', help = "The input directory to search for files")
+
+options = argParser.parse_args()
+options = vars(options)
+fullPath = os.path.realpath(__file__)
+scriptPath, tail = os.path.split(fullPath)
+
+subjectID = options['subjectid']
+endsWithConfFile = options['endswithconf']
+inputDir = options['inputdir']
+
+if not os.path.isfile(endsWithConfFile):
+    print("Endswithconffile not found")
+    quit()
+
+if not os.path.isdir(inputDir):
+    print("InputDir not found")
+    quit()
+
+try:
+    with open(endsWithConfFile) as f:
+        endsWithData = json.load(f)
+except Exception:
+    print("Could not load endswith conf file")
+    quit()
+
+minimumFieldsNeeded = ['lhwhitesurf', 'rhwhitesurf', 'lhpialsurf', 'rhpialsurf', 'drawemlabels', 'brainmask', 'lhthickness', 'rhthickness']
+
+for curField in minimumFieldsNeeded:
+    if not curField in endsWithData.keys():
+        print(curField + " not found in endswith conf, it is required")
+        quit()
+
+if not 'lhcortexroi' in endsWithData.keys() and not 'lhmedialwallroi' in endsWithData.keys():
+    print("I require either lhroi or lhmedialwallroi, neither are in endswith conf")
+    quit()
+if not 'rhcortexroi' in endsWithData.keys() and not 'rhmedialwallroi' in endsWithData.keys():
+    print("I require either rhroi or rhmedialwallroi, neither are in endswith conf")
+    quit()
+if not 't2restore' in endsWithData.keys() and not 't2raw' in endsWithData.keys():
+    print("I require either t2restore or t2raw, neither are in endswith conf")
+
+dataFilesFound = dict.fromkeys(endsWithData.keys())
+
+#for curKey in dataFiles.keys():
+#    dataFiles[curKey] = options[curKey]
+
+
+# check for the existence of files if given
+#for curKey in dataFiles.keys():
+#    if not dataFiles[curKey] is None:
+#        if not os.path.isfile(dataFiles[curKey]):
+#            print(dataFiles[curKey] + " was given but was not found")
+#            quit()
+
+for curKey in dataFilesFound.keys():
+    for root, dirs, files in os.walk(inputDir, topdown=False):
+        for name in files:
+            if name.endswith(endsWithData[curKey]):
+                dataFilesFound[curKey] = os.path.join(root, name)
+                break
+        if not dataFilesFound[curKey] is None:
+            break
+    if dataFilesFound[curKey] is None:
+        print(curKey + " file not found")
+        quit()
+
+# success, we have found all our files, we can now start making directories and converting
+
+try:
+    os.makedirs(os.path.join('freesurfer', subjectID), exist_ok = True)
+    os.makedirs(os.path.join('freesurfer', subjectID, 'label'), exist_ok = True)
+    os.makedirs(os.path.join('freesurfer', subjectID, 'mri'), exist_ok = True)
+    os.makedirs(os.path.join('freesurfer', subjectID, 'stats'), exist_ok = True)
+    os.makedirs(os.path.join('freesurfer', subjectID, 'surf'), exist_ok = True)
+    os.makedirs(os.path.join('TissueSeg'), exist_ok = True)
+    os.makedirs(os.path.join('RawT2RadiologicalIsotropic'), exist_ok = True)
+except Exception:
+    print("An error occurred while creating output directories")
+    quit()
+
+# copy the t2restore if both t2restore and t2raw are there
+if "t2restore" in dataFilesFound:
+    shutil.copyfile(dataFilesFound['t2restore'], os.path.join('RawT2RadiologicalIsotropic', subjectID + ".nii.gz"))
+elif "t2raw" in dataFilesFound:
+    shutil.copyfile(dataFilesFound['t2raw'], os.path.join('RawT2RadiologicalIsotropic', subjectID + ".nii.gz"))
+
+shutil.copyfile(dataFilesFound['brainmask'], os.path.join('TissueSeg', subjectID + "_brain_mask.nii.gz"))
+shutil.copyfile(dataFilesFound['drawemlabels'], os.path.join('TissueSeg', subjectID + "_all_labels.nii.gz"))
+
+os.chdir('TissueSeg')
+try:
+    os.unlink(subjectID + "_all_labels_manedit.nii.gz")
+except Exception:
+    pass
+os.symlink(subjectID + "_all_labels.nii.gz", subjectID + "_all_labels_manedit.nii.gz")
+os.chdir('..')
+
+subprocess.call([os.path.join(scriptPath, 'DrawEMToFreesurferLabels'), os.path.join('TissueSeg', subjectID + "_all_labels_manedit.nii.gz"), os.path.join('freesurfer', subjectID, 'mri', 'aseg.presurf.preunwmfix.mgz')])
+
+subprocess.call(['mri_convert', os.path.join('RawT2RadiologicalIsotropic', subjectID + ".nii.gz"), os.path.join('freesurfer', subjectID, 'mri', 'T1.mgz')])
+os.chdir(os.path.join('freesurfer', subjectID, 'mri'))
+try:
+    os.unlink('orig.mgz')
+except Exception:
+    pass
+os.symlink("T1.mgz", 'orig.mgz')
+try:
+    os.unlink('brain.mgz')
+except Exception:
+    pass
+os.symlink("T1.mgz", 'brain.mgz')
+os.chdir(os.path.join('..', '..', '..'))
+
+
+def convertSurface(dhcpSurfaceName, FSSurfaceName):
+    subprocess.call(['mris_convert', '--vol-geom', os.path.join('RawT2RadiologicalIsotropic', subjectID + ".nii.gz"), dhcpSurfaceName, FSSurfaceName + ".tmp"])
+    subprocess.call(['mris_convert', '--to-tkr', '--vol-geom', os.path.join('RawT2RadiologicalIsotropic', subjectID + ".nii.gz"), FSSurfaceName + ".tmp", FSSurfaceName])
+    os.unlink(FSSurfaceName + ".tmp")
+
+convertSurface(dataFilesFound['lhwhitesurf'], os.path.join('freesurfer', subjectID, 'surf', 'lh.white'))
+convertSurface(dataFilesFound['rhwhitesurf'], os.path.join('freesurfer', subjectID, 'surf', 'rh.white'))
+convertSurface(dataFilesFound['lhpialsurf'], os.path.join('freesurfer', subjectID, 'surf', 'lh.pial'))
+convertSurface(dataFilesFound['rhpialsurf'], os.path.join('freesurfer', subjectID, 'surf', 'rh.pial'))
+
+subprocess.call(['mris_convert', '-c', dataFilesFound['lhthickness'], os.path.join('freesurfer', subjectID, 'surf', 'lh.white'), os.path.join('freesurfer', subjectID, 'surf', 'lh.thickness')])
+subprocess.call(['mris_convert', '-c', dataFilesFound['rhthickness'], os.path.join('freesurfer', subjectID, 'surf', 'rh.white'), os.path.join('freesurfer', subjectID, 'surf', 'rh.thickness')])
+#print(dataFilesFound)
+
+subprocess.call([os.path.join(scriptPath, 'GIFTILabelToFSLabel'), dataFilesFound['lhcortexroi'], os.path.join('freesurfer', subjectID, 'surf', 'lh.white'), os.path.join('freesurfer', subjectID, 'label', 'lh.cortex.label')])
+subprocess.call([os.path.join(scriptPath, 'GIFTILabelToFSLabel'), dataFilesFound['rhcortexroi'], os.path.join('freesurfer', subjectID, 'surf', 'rh.white'), os.path.join('freesurfer', subjectID, 'label', 'rh.cortex.label')])
+
+FID = open(os.path.join('freesurfer', subjectID, '.isFromDHCP'), 'w')
+FID.write("yes\n")
+FID.close()
