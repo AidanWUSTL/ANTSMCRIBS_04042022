@@ -32,8 +32,8 @@ else
 	#fi
 
 	# copy the brain mask and label files to the global tissue seg directory
-	cp $DRAWEMOUTDIR/segmentations/${SUBJID}_brain_mask.nii.gz $OUTDIR
-	cp $DRAWEMOUTDIR/segmentations/${SUBJID}_all_labels.nii.gz $OUTDIR
+	#cp $DRAWEMOUTDIR/segmentations/${SUBJID}_brain_mask.nii.gz $OUTDIR
+	#cp $DRAWEMOUTDIR/segmentations/${SUBJID}_all_labels.nii.gz $OUTDIR
 
 	# we need to make the freesurfer directories
 	mkdir -p freesurfer/$SUBJID
