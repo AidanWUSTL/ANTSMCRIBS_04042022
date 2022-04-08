@@ -24,7 +24,7 @@ if len(args) < 2:
 inFileName = args[0]
 
 if not os.path.isfile(inFileName):
-    print("Init File not found")
+    print("Component Area Filter Init File not found")
     quit()
 
 inNII = nibabel.load(inFileName)

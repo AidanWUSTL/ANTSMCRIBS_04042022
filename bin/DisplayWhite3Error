@@ -20,15 +20,15 @@ VTPExtractAll --surf-volgeom=$VOLGEOM SurfReconDeformable/$SUBJID/temp/white-1.v
 #./VTPExtractAll --surf-volgeom=$VOLGEOM SurfReconDeformable/$SUBJID/meshes/white.vtp &
 #./VTPExtractAll --surf-volgeom=$VOLGEOM SurfReconDeformable/$SUBJID/meshes/white+internal.vtp &
 TISSUESEGDIR=TissueSegMCRIBS
-$MCRIBS_HOME/MIRTK/MIRTK-install/lib/tools/evaluate-surface-mesh SurfReconDeformable/$SUBJID/temp/white-4.vtp SurfReconDeformable/$SUBJID/temp/white-4_eval.vtp -v -v -threads `nproc` -collisions 0
+$MCRIBS_HOME/MIRTK/MIRTK-install/lib/tools/evaluate-surface-mesh SurfReconDeformable/$SUBJID/temp/white-3.vtp SurfReconDeformable/$SUBJID/temp/white-3_eval.vtp -v -v -threads `nproc` -collisions 0
 
-VTPExtractAll --surf-volgeom=$VOLGEOM SurfReconDeformable/$SUBJID/temp/white-4_eval.vtp
+VTPExtractAll --surf-volgeom=$VOLGEOM SurfReconDeformable/$SUBJID/temp/white-3_eval.vtp
 
-W=`PialDisplayCollisionVertices SurfReconDeformable/$SUBJID/temp/white-4_eval.vtp`
+W=`PialDisplayCollisionVertices SurfReconDeformable/$SUBJID/temp/white-3_eval.vtp`
 freeview \
-	-v $VOLGEOM \
+	-v $VOLGEOM:grayscale=0,1200 \
 	-v SurfReconDeformable/$SUBJID/recon/regions.nii.gz:colormap=lut \
 	-f SurfReconDeformable/$SUBJID/temp/white-1_tkr.surf:edgecolor=blue \
-	-f SurfReconDeformable/$SUBJID/temp/white-4_eval_tkr.surf:overlay=SurfReconDeformable/$SUBJID/temp/white-4_eval.CollisionMask.curv:edgecolor=overlay:goto=$W 
+	-f SurfReconDeformable/$SUBJID/temp/white-3_eval_tkr.surf:overlay=SurfReconDeformable/$SUBJID/temp/white-3_eval.CollisionMask.curv:edgecolor=overlay:goto=$W 
 	
 #-v SurfReconDeformable/$SUBJID/recon/regions.nii.gz \

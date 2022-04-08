@@ -1,0 +1,38 @@
+#!/bin/bash
+
+if [ -z "$1" ]
+then
+	echo "Usage: $0 <subject id> <annot prefix>"
+	exit
+fi
+
+SUBJID=$1
+
+#if [ -f "TissueSeg/${1}_all_labels.nii.gz" -a -L "TissueSeg/${1}_all_labels_manedit.nii.gz" ]
+#then
+#	rm -f TissueSeg/${1}_all_labels_manedit.nii.gz
+#	cp TissueSeg/${1}_all_labels.nii.gz TissueSeg/${1}_all_labels_manedit.nii.gz
+#fi
+
+SURFS=""
+
+TISSUESEGDIR=TissueSegMCRIBS
+EDGETHICKNESS=3
+#./extract_all_vtp_indir.sh TissueSeg/${1}_t1w_restore.nii.gz SurfReconDeformable/${1}/temp
+#./extract_all_vtp_indir.sh TissueSeg/${1}_t1w_restore.nii.gz SurfReconDeformable/${1}/meshes
+#./VTPExtractAll --surf-volgeom=TissueSeg/${1}_t1w_restore.nii.gz SurfReconDeformable/${1}/temp/pial-5.vtp
+./VTPExtractAll --surf-volgeom=${TISSUESEGDIR}/$1/${1}_t2w_restore.nii.gz SurfReconDeformable/${1}/temp/white-1.vtp
+./VTPExtractAll --surf-volgeom=${TISSUESEGDIR}/$1/${1}_t2w_restore.nii.gz SurfReconDeformable/${1}/meshes/white.vtp
+#./VTPExtractAll --surf-volgeom=${TISSUESEGDIR}/$1/${1}_t1w_restore.nii.gz SurfReconDeformable/${1}/meshes/white.vtp
+#./VTPExtractAll --surf-volgeom=TissueSeg/${1}_t1w_restore.nii.gz SurfReconDeformable/${1}/meshes/pial.vtp &
+#wait;
+
+freeview \
+	-v ${TISSUESEGDIR}/$1/${1}_t2w_restore.nii.gz \
+	-v ${TISSUESEGDIR}/$1/${1}_labelfusionimage_dkt_antsinit.nii.gz:colormap=lut:opacity=0.3 \
+	-v ${TISSUESEGDIR}/$1/${1}_labelfusionimage_regions.nii.gz:colormap=lut:opacity=0.3 \
+	-v SurfReconDeformable/$1/temp/wm_force.nii.gz:colormap=heat:opacity=0.3 \
+	-f SurfReconDeformable/$1/temp/white-1_tkr.surf:edgecolor=green \
+	-f SurfReconDeformable/$1/meshes/white_tkr.surf:edgecolor=blue
+#	-f SurfReconDeformable/$1/meshes/white_tkr.surf:edgecolor=blue \
+	#-v ${TISSUESEGDIR}/$1/${1}_g.nii.gz:colormap=lut:opacity=0.3 \
