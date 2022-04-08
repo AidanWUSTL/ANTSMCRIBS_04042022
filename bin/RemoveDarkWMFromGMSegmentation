@@ -1,9 +1,5 @@
 #!/usr/bin/env python3
 
-# AL changes:
-# changed call to robustOtsu with PercentageCutoff passed as None to be [None, None] to allow indexing and avoid error
-# changed the call BACK to None, added a check within robostOtsu to handle
-
 import numpy
 import sys
 import os
