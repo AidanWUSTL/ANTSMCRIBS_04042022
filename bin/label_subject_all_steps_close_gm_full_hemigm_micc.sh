@@ -64,7 +64,7 @@ H=`hostname`
 export TISSUESEGDIR=TissueSegMCRIBS
 mkdir -p ${TISSUESEGDIR}/${SUBJID}
 
-export TEMPLATEDIR=/home/addo/MCRIownCloud/deve2-chris.adamson/neonatal/OrigImagesLabelledLaPrem/ANTST1T2TemplateGMAIMIHighGMWeightDemons
+export TEMPLATEDIR=/templates
 #export TEMPLATEDIR=/group/deve2/data/addo/neonatal/OrigImagesLabelledLaPrem/ANTST1T2TemplateGMAIMIHighGMWeightDemons
 export T2TEMPLATE=$TEMPLATEDIR/Finaltemplate0.nii.gz
 export T2TEMPLATELAPLACIAN=$TEMPLATEDIR/Finaltemplate0Laplacian.nii.gz
@@ -75,7 +75,7 @@ export T1TEMPLATEBRAIN=$TEMPLATEDIR/Finaltemplate1Brain.nii.gz
 #TEMPLATEDIR=$HOME/MCRIownCloud/deve2-chris.adamson/neonatal/BrainMaskAtlas/
 FSDIR=../LaPrem/freesurfer
 
-export T2TARGET=../RawT2RadiologicalIsotropicCropped/${SUBJID}.nii.gz
+export T2TARGET=RawT2/{SUBJID}.nii.gz
 export T1TARGET=../RawT1RadiologicalIsotropicCropped/${SUBJID}.nii.gz
 
 #if [ "$USET1" == "YES" ]
