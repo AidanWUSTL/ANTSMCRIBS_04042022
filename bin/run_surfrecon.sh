@@ -48,7 +48,7 @@ done
 #mri_convert $TISSUESEGDIROrigSkullStripNoTentorumVent/$1/${1}_labelfusionimage_dkt.nii.gz freesurfer/${SUBJID}/mri/mcribs_dkt.nii.gz
 #MCRIBReconAll --surfrecon --deformablet1only $NOENSURE -openmp 24 ${SUBJID}
 export TISSUESEGDIR=TissueSegMCRIBS
-export TEMPLATEDIR=/home/addo/MCRIownCloud/deve2-chris.adamson/neonatal/OrigImagesLabelledLaPrem/ANTST1T2TemplateGMAIMIHighGMWeightDemons
+export TEMPLATEDIR=/templates
 #export TEMPLATEDIR=/group/deve2/data/addo/neonatal/OrigImagesLabelledLaPrem/ANTST1T2TemplateGMAIMIHighGMWeightDemons
 export OUTPUTPREFIX=${TISSUESEGDIR}/${SUBJID}/${SUBJID}
 
