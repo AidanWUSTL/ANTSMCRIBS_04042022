@@ -75,7 +75,7 @@ export T1TEMPLATEBRAIN=$TEMPLATEDIR/Finaltemplate1Brain.nii.gz
 #TEMPLATEDIR=$HOME/MCRIownCloud/deve2-chris.adamson/neonatal/BrainMaskAtlas/
 FSDIR=../LaPrem/freesurfer
 
-export T2TARGET=RawT2/{SUBJID}.nii.gz
+export T2TARGET=RawT2/${SUBJID}.nii.gz
 export T1TARGET=../RawT1RadiologicalIsotropicCropped/${SUBJID}.nii.gz
 
 #if [ "$USET1" == "YES" ]
@@ -232,7 +232,7 @@ antsApplyTransforms -v -d 3 --input $TEMPLATEDIR/Finaltemplate0.nii.gz --referen
 		--output-data-type float \
 		--output ${OUTPUTPREFIX}_brainmask_skullstrip_reg.nii.gz
 
-	./MRIBinarize --i ${OUTPUTPREFIX}_brainmask_skullstrip_reg.nii.gz --o ${OUTPUTPREFIX}_brain_mask.nii.gz --min 0.25 --noverbose 
+	MRIBinarize --i ${OUTPUTPREFIX}_brainmask_skullstrip_reg.nii.gz --o ${OUTPUTPREFIX}_brain_mask.nii.gz --min 0.25 --noverbose 
 	rm -f ${OUTPUTPREFIX}_brainmask_skullstrip_reg.nii.gz
 #fi
 #mri_mask ${OUTPUTPREFIX}_t2w_init_restore.nii.gz ${OUTPUTPREFIX}_brain_mask.nii.gz ${OUTPUTPREFIX}_t2w_init_restore_brain.nii.gz 
@@ -272,9 +272,9 @@ fi
 
 if [ ! -f "${OUTPUTPREFIX}_t2w_restore_regmask.nii.gz" ]
 then
-	./RobustOtsu2 ${OUTPUTPREFIX}_t2w_restore.nii.gz ${OUTPUTPREFIX}_t2w_restore_regmask.nii.gz
+	RobustOtsu2 ${OUTPUTPREFIX}_t2w_restore.nii.gz ${OUTPUTPREFIX}_t2w_restore_regmask.nii.gz
 	ImageMath 3 ${OUTPUTPREFIX}_t2w_restore_regmask.nii.gz GetLargestComponent ${OUTPUTPREFIX}_t2w_restore_regmask.nii.gz
-	./MRIBinarize --i ${OUTPUTPREFIX}_t2w_restore_regmask.nii.gz --o ${OUTPUTPREFIX}_t2w_restore_regmask.nii.gz --match 1 --dilate 3 --noverbose 
+	MRIBinarize --i ${OUTPUTPREFIX}_t2w_restore_regmask.nii.gz --o ${OUTPUTPREFIX}_t2w_restore_regmask.nii.gz --match 1 --dilate 3 --noverbose 
 	fslmaths ${OUTPUTPREFIX}_t2w_restore_regmask.nii.gz ${OUTPUTPREFIX}_t2w_restore_regmask.nii.gz -odt char
 	fslcpgeom ${OUTPUTPREFIX}_t2w_restore ${OUTPUTPREFIX}_t2w_restore_regmask	
 fi
@@ -329,9 +329,9 @@ done
 fslcpgeom ${OUTPUTPREFIX}_t2w_restore_brain_dn.nii.gz ${OUTPUTPREFIX}_brain_mask.nii.gz 
 if [ ! -f "${OUTPUTPREFIX}_t2w_restore_brain_dn_atropos3_priors_segmentation.nii.gz" ]
 then
-	./MRIBinarize --i ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg.nii.gz --o ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_wm.nii.gz --match 2 41 --noverbose 
-	./MRIBinarize --i ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg.nii.gz --o ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_gm.nii.gz --match $GMMATCH 9 48 51 52 12 13 --noverbose 
-	./MRIBinarize --i ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg.nii.gz --o ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_csf.nii.gz --match 4 43 24 --noverbose 
+	MRIBinarize --i ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg.nii.gz --o ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_wm.nii.gz --match 2 41 --noverbose 
+	MRIBinarize --i ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg.nii.gz --o ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_gm.nii.gz --match $GMMATCH 9 48 51 52 12 13 --noverbose 
+	MRIBinarize --i ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg.nii.gz --o ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_csf.nii.gz --match 4 43 24 --noverbose 
 
 	CSFMEAN=`fslstats ${OUTPUTPREFIX}_t2w_restore_brain_dn.nii.gz -k ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_csf.nii.gz -m`
 	GMMEAN=`fslstats ${OUTPUTPREFIX}_t2w_restore_brain_dn.nii.gz -k ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_gm.nii.gz -m`
@@ -434,8 +434,8 @@ fslmaths ${OUTPUTPREFIX}_t2w_restore_brain_dn_atropos3_priors_segmentation.nii.g
 #		fslmaths ${OUTPUTPREFIX}_labelfusionimage_skullstrip_reg_dkt_antsinit.nii.gz  ${OUTPUTPREFIX}_labelfusionimage_skullstrip_reg_dkt_antsinit.nii.gz  -odt short
 #		exit
 #	
-	./MRIBinarize --i ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg.nii.gz --o ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_not_3rd_ventricle.nii.gz --match 14 24 170 --inv --erode 1 --noverbose 
-	./MRIBinarize --i ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg.nii.gz --o ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_lateral_ventricles.nii.gz --match 4 43 31 63 --noverbose 
+	MRIBinarize --i ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg.nii.gz --o ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_not_3rd_ventricle.nii.gz --match 14 24 170 --inv --erode 1 --noverbose 
+	MRIBinarize --i ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg.nii.gz --o ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_lateral_ventricles.nii.gz --match 4 43 31 63 --noverbose 
 	#./CSFFromAtropos5 ${OUTPUTPREFIX}_t2w_restore_brain_dn_atropos5_segmentation.nii.gz ${OUTPUTPREFIX}_t2w_restore_brain_dn_atropos5_segmentation_csf.nii.gz
 	#fslmaths ${OUTPUTPREFIX}_t2w_restore_brain_dn_atropos5_segmentation_csf -mas ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_not_3rd_ventricle.nii.gz ${OUTPUTPREFIX}_t2w_restore_brain_dn_atropos5_segmentation_csf -odt char
 	
@@ -466,7 +466,7 @@ fslmaths ${OUTPUTPREFIX}_t2w_restore_brain_dn_atropos3_priors_segmentation.nii.g
 	#${OUTPUTPREFIX}_t2w_restore_brain_dn_atropos5_segmentation.nii.gz
 	#./MRIBinarize --i ${OUTPUTPREFIX}_t2w_restore_brain_dn_brightpad_laplacian1.nii.gz --o ${OUTPUTPREFIX}_t2w_restore_brain_dn_brightpad_laplacian1_neg.nii.gz --max 0
 	#ri_binarize --i ${OUTPUTPREFIX}_t2w_restore_brain_dn_brightpad_laplacian1.nii.gz --o ${OUTPUTPREFIX}_segmentation_gm_init.nii.gz --min 0 --mask ${OUTPUTPREFIX}_brain_mask.nii.gz --noverbose 
-	./MRIBinarize --i ${OUTPUTPREFIX}_t2w_restore_brain_dn_atropos3_priors_segmentation.nii.gz --o ${OUTPUTPREFIX}_segmentation_gm_init.nii.gz --match 1 --noverbose 
+	MRIBinarize --i ${OUTPUTPREFIX}_t2w_restore_brain_dn_atropos3_priors_segmentation.nii.gz --o ${OUTPUTPREFIX}_segmentation_gm_init.nii.gz --match 1 --noverbose 
 
 	#ThresholdImage 3 ${OUTPUTPREFIX}_t2w_restore_brain_dn.nii.gz ${OUTPUTPREFIX}_t2w_restore_brain_dn_kmeans4.nii.gz Kmeans 4 ${OUTPUTPREFIX}_brain_mask.nii.gz
 	#ThresholdImage 3 ${OUTPUTPREFIX}_t2w_restore_brain_dn.nii.gz ${OUTPUTPREFIX}_t2w_restore_brain_dn_kmeans5.nii.gz Kmeans 5 ${OUTPUTPREFIX}_brain_mask.nii.gz
@@ -494,16 +494,16 @@ fslmaths ${OUTPUTPREFIX}_t2w_restore_brain_dn_atropos3_priors_segmentation.nii.g
 	#./MRIBinarize --i ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg.nii.gz --o ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_subcort_remove.nii.gz --match 51 52 12 13 9 48 54 17 53 18 --inv --erode 2 --noverbose
 	
 	# remove subcortical
-	./MRIBinarize --i ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg.nii.gz --o ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_subcort_remove.nii.gz --match 28 60 170 11 50 51 52 12 13 9 48 54 18 --dilate 7 --erode 3 --noverbose 
+	MRIBinarize --i ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg.nii.gz --o ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_subcort_remove.nii.gz --match 28 60 170 11 50 51 52 12 13 9 48 54 18 --dilate 7 --erode 3 --noverbose 
 	
-	./MRIBinarize --i ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg.nii.gz --o ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_hippo.nii.gz --match 17 53 --noverbose 
+	MRIBinarize --i ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg.nii.gz --o ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_hippo.nii.gz --match 17 53 --noverbose 
 	fslmaths ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_subcort_remove -add ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_hippo.nii.gz -bin ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_subcort_remove -odt char
-	./MRIBinarize --i ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg.nii.gz --o ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_cerebellum_remove.nii.gz --match 91 93 --dilate 3 --erode 3 --noverbose  
+	MRIBinarize --i ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg.nii.gz --o ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_cerebellum_remove.nii.gz --match 91 93 --dilate 3 --erode 3 --noverbose  
 	
-	./MRIBinarize --i ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg.nii.gz --o ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_cerebellum_dilated.nii.gz --match 91 93 --dilate 4 --noverbose  
+	MRIBinarize --i ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg.nii.gz --o ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_cerebellum_dilated.nii.gz --match 91 93 --dilate 4 --noverbose  
 	
-	./MRIBinarize --i ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg.nii.gz --o ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_skull_dilated.nii.gz --match 165 --dilate 4 --noverbose  
-	./MRIBinarize --i ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg.nii.gz --o ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_csf.nii.gz --match 24 --noverbose  
+	MRIBinarize --i ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg.nii.gz --o ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_skull_dilated.nii.gz --match 165 --dilate 4 --noverbose  
+	MRIBinarize --i ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg.nii.gz --o ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_csf.nii.gz --match 24 --noverbose  
 	fslmaths ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_skull_dilated.nii.gz -mas ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_cerebellum_dilated.nii.gz -add ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_cerebellum_remove.nii.gz -bin ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_cerebellum_remove.nii.gz -odt char
 	fslmaths ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_csf.nii.gz -mas ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_cerebellum_dilated.nii.gz -add ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_cerebellum_remove.nii.gz -bin ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_cerebellum_remove.nii.gz -odt char
 
@@ -514,38 +514,38 @@ fslmaths ${OUTPUTPREFIX}_t2w_restore_brain_dn_atropos3_priors_segmentation.nii.g
 	#rm -f ${OUTPUTPREFIX}_t2w_dark_wm_prob_skullstrip_reg.nii.gz
 	#fslmaths ${OUTPUTPREFIX}_segmentation_gm ${OUTPUTPREFIX}_segmentation_gm_before_last -odt char
 	
-	./MRIBinarize --i ${OUTPUTPREFIX}_brain_mask.nii.gz --o ${OUTPUTPREFIX}_brain_mask_border.nii.gz --match 0 --dilate 5 --noverbose 
+	MRIBinarize --i ${OUTPUTPREFIX}_brain_mask.nii.gz --o ${OUTPUTPREFIX}_brain_mask_border.nii.gz --match 0 --dilate 5 --noverbose 
 
-	./MRIBinarize --i ${OUTPUTPREFIX}_t2w_restore_brain_dn_atropos3_priors_segmentation.nii.gz --o ${OUTPUTPREFIX}_t2w_restore_brain_dn_atropos3_priors_segmentation_csf.nii.gz --match 3 --dilate 5 --noverbose 
+	MRIBinarize --i ${OUTPUTPREFIX}_t2w_restore_brain_dn_atropos3_priors_segmentation.nii.gz --o ${OUTPUTPREFIX}_t2w_restore_brain_dn_atropos3_priors_segmentation_csf.nii.gz --match 3 --dilate 5 --noverbose 
 	
-	./MRIBinarize --i ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg.nii.gz --o ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_skull_dilated.nii.gz --match 165 --dilate 7 --noverbose  
-	./MRIBinarize --i ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg.nii.gz --o ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_brainstem_dilated.nii.gz --match 170 --dilate 7 --noverbose  
-	./MRIBinarize --i ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg.nii.gz --o ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_csf.nii.gz --match 24 --noverbose
+	MRIBinarize --i ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg.nii.gz --o ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_skull_dilated.nii.gz --match 165 --dilate 7 --noverbose  
+	MRIBinarize --i ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg.nii.gz --o ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_brainstem_dilated.nii.gz --match 170 --dilate 7 --noverbose  
+	MRIBinarize --i ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg.nii.gz --o ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_csf.nii.gz --match 24 --noverbose
 	fslmaths ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_skull_dilated.nii.gz -mas ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_brainstem_dilated.nii.gz -mas ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_csf.nii.gz ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_brainstem_to_remove.nii.gz
 	fslmaths ${OUTPUTPREFIX}_brain_mask_border.nii.gz -mul ${OUTPUTPREFIX}_t2w_restore_brain_dn_atropos3_priors_segmentation_csf.nii.gz -bin ${OUTPUTPREFIX}_brain_border_to_remove.nii.gz -odt char
 
-	./MRIBinarize --i ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg.nii.gz --o ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_wm.nii.gz --match 2 41 --noverbose
+	MRIBinarize --i ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg.nii.gz --o ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_wm.nii.gz --match 2 41 --noverbose
 	
-	./MakeBrightVentricleMask $SUBJID $TISSUESEGDIR
+	MakeBrightVentricleMask $SUBJID $TISSUESEGDIR
 	
-	./MRIBinarize --i ${OUTPUTPREFIX}_majority_dkt_with_latvent_rings_skullstrip_reg.nii.gz --o ${OUTPUTPREFIX}_majority_dkt_with_latvent_rings_skullstrip_reg_rings.nii.gz --match 997 998 --dilate 3 --noverbose
-	./MRIBinarize --i ${OUTPUTPREFIX}_brightmask_kmeans_class3.nii.gz --o ${OUTPUTPREFIX}_brightmask_kmeans_class3_dilated.nii.gz --match 1 --dilate 2 --noverbose
+	MRIBinarize --i ${OUTPUTPREFIX}_majority_dkt_with_latvent_rings_skullstrip_reg.nii.gz --o ${OUTPUTPREFIX}_majority_dkt_with_latvent_rings_skullstrip_reg_rings.nii.gz --match 997 998 --dilate 3 --noverbose
+	MRIBinarize --i ${OUTPUTPREFIX}_brightmask_kmeans_class3.nii.gz --o ${OUTPUTPREFIX}_brightmask_kmeans_class3_dilated.nii.gz --match 1 --dilate 2 --noverbose
 	fslmaths ${OUTPUTPREFIX}_majority_dkt_with_latvent_rings_skullstrip_reg_rings.nii.gz -mas ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_wm.nii.gz -mas ${OUTPUTPREFIX}_brightmask_kmeans_class3.nii.gz ${OUTPUTPREFIX}_majority_dkt_with_latvent_rings_skullstrip_reg_rings_to_remove.nii.gz
 	
-	./MRIBinarize --i ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg.nii.gz --o ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_choroid_to_remove.nii.gz --match 31 63 --dilate 3 
+	MRIBinarize --i ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg.nii.gz --o ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_choroid_to_remove.nii.gz --match 31 63 --dilate 3 
 	
-	./MRIBinarize --i ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg.nii.gz --o ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_isthmus_bigdilate.nii.gz --match 1010 2010 --dilate 10
+	MRIBinarize --i ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg.nii.gz --o ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_isthmus_bigdilate.nii.gz --match 1010 2010 --dilate 10
 	#$fslmaths ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_isthmus_to_remove.nii.gz -mas ${OUTPUTPREFIX}_brightmask_kmeans_class3_dilated.nii.gz ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_isthmus_to_remove.nii.gz
 
-	./MRIBinarize --i ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg.nii.gz --o ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_choroid_bigdilate.nii.gz --match 31 63 --dilate 15
-	./MRIBinarize --i ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg.nii.gz --o ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_choroid_mask.nii.gz --match 2 41 31 63 4 43
+	MRIBinarize --i ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg.nii.gz --o ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_choroid_bigdilate.nii.gz --match 31 63 --dilate 15
+	MRIBinarize --i ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg.nii.gz --o ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_choroid_mask.nii.gz --match 2 41 31 63 4 43
 
 	fslmaths ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_isthmus_bigdilate.nii.gz -mas ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_choroid_bigdilate.nii.gz -mas ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_choroid_mask.nii.gz ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_isthmus_to_remove.nii.gz
 
 	#cp ${OUTPUTPREFIX}_segmentation_gm.nii.gz ${OUTPUTPREFIX}_segmentation_gm1.nii.gz
 	
 	# remove GM between CSF and brain border
-	./MRIBinarize --i ${OUTPUTPREFIX}_brain_mask.nii.gz --o ${OUTPUTPREFIX}_brain_mask_inv_dilated.nii.gz --match 0 --dilate 4
+	MRIBinarize --i ${OUTPUTPREFIX}_brain_mask.nii.gz --o ${OUTPUTPREFIX}_brain_mask_inv_dilated.nii.gz --match 0 --dilate 4
 
 	#./MRIBinarize --i ${OUTPUTPREFIX}_t2w_restore_brain_dn_atropos3_priors_segmentation.nii.gz --o  --match 0 --dilate 4
 
@@ -573,10 +573,10 @@ fslmaths ${OUTPUTPREFIX}_t2w_restore_brain_dn_atropos3_priors_segmentation.nii.g
 	# remove cerebellum and WM
 	#ThresholdImage 3 ${OUTPUTPREFIX}_t2w_restore_brain_dn.nii.gz ${OUTPUTPREFIX}_t2w_restore_brain_dn_segmentation_gm_otsu2.nii.gz Otsu 2 ${OUTPUTPREFIX}_segmentation_gm.nii.gz
 	cp ${OUTPUTPREFIX}_segmentation_gm.nii.gz ${OUTPUTPREFIX}_segmentation_gm_no_dark_wm_remove.nii.gz
-	./RemoveDarkWMFromGMSegmentation $SUBJID
+	RemoveDarkWMFromGMSegmentation $SUBJID
 	#fslmaths ${OUTPUTPREFIX}_dark_wm_bright_gm_to_remove -mul -1 -add 1 -mas ${OUTPUTPREFIX}_segmentation_gm ${OUTPUTPREFIX}_segmentation_gm -odt char
-	./ComponentAreaFilter -a 500 ${OUTPUTPREFIX}_segmentation_gm.nii.gz ${OUTPUTPREFIX}_segmentation_gm.nii.gz
-	./ComponentAreaFilter -a 500 ${OUTPUTPREFIX}_segmentation_gm_no_dark_wm_remove.nii.gz ${OUTPUTPREFIX}_segmentation_gm_old_no_dark_wm_remove.nii.gz
+	ComponentAreaFilter -a 500 ${OUTPUTPREFIX}_segmentation_gm.nii.gz ${OUTPUTPREFIX}_segmentation_gm.nii.gz
+	ComponentAreaFilter -a 500 ${OUTPUTPREFIX}_segmentation_gm_no_dark_wm_remove.nii.gz ${OUTPUTPREFIX}_segmentation_gm_old_no_dark_wm_remove.nii.gz
 	#fslmaths ${OUTPUTPREFIX}_segmentation_gm.nii.gz ${OUTPUTPREFIX}_segmentation_gm_lapinit.nii.gz
 	rm -f \
 		${OUTPUTPREFIX}_brain_border_to_remove.nii.gz \
@@ -605,7 +605,7 @@ fslmaths ${OUTPUTPREFIX}_t2w_restore_brain_dn_atropos3_priors_segmentation.nii.g
 		${OUTPUTPREFIX}_t2w_restore_brain_dn_atropos5_segmentation_3.nii.gz \
 		${OUTPUTPREFIX}_t2w_restore_brain_dn_atropos5_segmentation_border.nii.gz
 	
-	./SeparateGMSegHemis $SUBJID
+	SeparateGMSegHemis $SUBJID
 	#####
 	#fslmaths ${OUTPUTPREFIX}_segmentation_gm.nii.gz ${OUTPUTPREFIX}_segmentation_gm_atroposinit.nii.gz
 	#./MRIBinarize --i ${OUTPUTPREFIX}_t2w_restore_brain_dn_atropos5_segmentation.nii.gz --o ${OUTPUTPREFIX}_segmentation_csf.nii.gz --match 4 5 --noverbose 
@@ -681,9 +681,9 @@ fi
 		#echo "./label_subject_all_steps_tissuesegs_transformonly_bspline_noring.sh $i" >> $T
 		if [ "$DOPARALLEL" == "YES" ]
 		then
-			echo "./label_subject_all_steps_tissuesegs_transformonly_bspline_noring_gmsep.sh $i" >> $T
+			echo "label_subject_all_steps_tissuesegs_transformonly_bspline_noring_gmsep.sh $i" >> $T
 		else
-			./label_subject_all_steps_tissuesegs_transformonly_bspline_noring_gmsep.sh $i
+			label_subject_all_steps_tissuesegs_transformonly_bspline_noring_gmsep.sh $i
 		fi
 #./label_subject_all_steps_tissuesegs_transformonly_bspline_noring.sh $i
 		#exit
@@ -816,10 +816,10 @@ rm -f ${OUTPUTPREFIX}_labelfusionimage_dkt_antsinit_orig_lh_hippo_closed.nii.gz 
 
 mri_binarize --i ${OUTPUTPREFIX}_labelfusionimage_dkt_antsinit_orig.nii.gz --o ${OUTPUTPREFIX}_labelfusionimage_dkt_antsinit_orig_notgm.nii.gz --match $GMMATCH --inv --noverbose
 
-./MRIBinarize --i ${OUTPUTPREFIX}_labelfusionimage_dkt_antsinit_orig.nii.gz --o ${OUTPUTPREFIX}_labelfusionimage_dkt_antsinit_orig_lh_gm_dilated.nii.gz --min 1000 --max 1036 --noverbose --dilate 5
-./MRIBinarize --i ${OUTPUTPREFIX}_labelfusionimage_dkt_antsinit_orig.nii.gz --o ${OUTPUTPREFIX}_labelfusionimage_dkt_antsinit_orig_rh_gm_dilated.nii.gz --min 2000 --max 2036 --noverbose --dilate 5
+MRIBinarize --i ${OUTPUTPREFIX}_labelfusionimage_dkt_antsinit_orig.nii.gz --o ${OUTPUTPREFIX}_labelfusionimage_dkt_antsinit_orig_lh_gm_dilated.nii.gz --min 1000 --max 1036 --noverbose --dilate 5
+MRIBinarize --i ${OUTPUTPREFIX}_labelfusionimage_dkt_antsinit_orig.nii.gz --o ${OUTPUTPREFIX}_labelfusionimage_dkt_antsinit_orig_rh_gm_dilated.nii.gz --min 2000 --max 2036 --noverbose --dilate 5
 
-./MRIBinarize --i ${OUTPUTPREFIX}_labelfusionimage_dkt_antsinit_orig.nii.gz --o ${OUTPUTPREFIX}_labelfusionimage_dkt_antsinit_orig_wm_dilated.nii.gz --match 2 41 --noverbose --dilate 1
+MRIBinarize --i ${OUTPUTPREFIX}_labelfusionimage_dkt_antsinit_orig.nii.gz --o ${OUTPUTPREFIX}_labelfusionimage_dkt_antsinit_orig_wm_dilated.nii.gz --match 2 41 --noverbose --dilate 1
 fslmaths ${OUTPUTPREFIX}_labelfusionimage_dkt_antsinit_orig_lh_gm_dilated.nii.gz -mas ${OUTPUTPREFIX}_labelfusionimage_dkt_antsinit_orig_rh_gm_dilated.nii.gz -mas ${OUTPUTPREFIX}_labelfusionimage_dkt_antsinit_orig_notgm.nii.gz -mas ${OUTPUTPREFIX}_labelfusionimage_dkt_antsinit_orig_wm_dilated.nii.gz -bin -mul 24 ${OUTPUTPREFIX}_labelfusionimage_dkt_antsinit_orig_to_csf.nii.gz
 mri_mask -transfer 24 ${OUTPUTPREFIX}_labelfusionimage_dkt_antsinit.nii.gz ${OUTPUTPREFIX}_labelfusionimage_dkt_antsinit_orig_to_csf.nii.gz ${OUTPUTPREFIX}_labelfusionimage_dkt_antsinit.nii.gz
 
