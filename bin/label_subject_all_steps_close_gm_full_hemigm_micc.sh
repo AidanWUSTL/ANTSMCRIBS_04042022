@@ -56,10 +56,10 @@ do
 	shift;
 done
 
-if [ -z "$SUBJID" ]
-then
+#if [ -z "$SUBJID" ]
+#then
 
-fi
+#fi
 H=`hostname`
 export TISSUESEGDIR=TissueSegMCRIBS
 mkdir -p ${TISSUESEGDIR}/${SUBJID}
