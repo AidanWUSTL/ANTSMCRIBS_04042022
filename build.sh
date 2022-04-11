@@ -38,8 +38,8 @@ do
 	fi
 	if [ "$1" == "-archnative" ]
 	then
-		ARCHFLAGS="-DCMAKE_C_FLAGS=\"-march=native -mtune=native -mno-fma -flto\" -DCMAKE_CXX_FLAGS=\"-march=native -mtune=native -mno-fma -flto\""
-		ARCHFLAGS="-DCMAKE_C_FLAGS=\"-march=native -mtune=native -flto\" -DCMAKE_CXX_FLAGS=\"-march=native -mtune=native -flto\""
+		ARCHFLAGS="-DCMAKE_C_FLAGS=\"-march=native -mtune=native -mno-fma\" -DCMAKE_CXX_FLAGS=\"-march=native -mtune=native -mno-fma\""
+		ARCHFLAGS="-DCMAKE_C_FLAGS=\"-march=native -mtune=native\" -DCMAKE_CXX_FLAGS=\"-march=native -mtune=native\""
 	fi
 	if [ "$1" == "-debug" ]
 	then
@@ -47,7 +47,7 @@ do
 	fi
 	shift;
 done
-ARCHFLAGS="-DCMAKE_C_FLAGS=\"-flto\" -DCMAKE_CXX_FLAGS=\"-flto\""
+ARCHFLAGS="-DCMAKE_C_FLAGS=\"\" -DCMAKE_CXX_FLAGS=\"\""
 
 #COMPILERFLAGS="-DCMAKE_C_COMPILER=gcc-8 -DCMAKE_CXX_COMPILER=g++-8"
 
